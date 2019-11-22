@@ -15,7 +15,7 @@ void InitPS2()
 }
 
 //jack添加setSpeed函数
-void setSpeed()
+void setSpeed(int speed)
 {
 	switch(speed){
 		case 4:
@@ -37,30 +37,30 @@ void setSpeed()
 void ps2Handle() {
   static uint32_t Timer;
   unsigned char PSS_RX_VALUE;
-  unsigned char PSS_RY_VALUE;
+  unsigned char PSS_LY_VALUE;
   if (Timer > millis())
     return;
   ps2X.read_gamepad();                  //读取遥控器按下的键值        
   
   PSS_RX_VALUE = ps2X.Analog(PSS_RX);  //  摇杆x方向的数值
-  PSS_RY_VALUE = ps2X.Analog(PSS_RY);  // 摇杆Y方向的数值
+  PSS_LY_VALUE = ps2X.Analog(PSS_LY);  // 摇杆Y方向的数值
   //jack-根据按键设置速度--函数入口
-  if (ps2x.NewButtonState()){        //will be TRUE if any button changes state (on to off, or off to on)
-    if(ps2x.Button(PSB_R2)){
+  if (ps2X.NewButtonState()){        //will be TRUE if any button changes state (on to off, or off to on)
+    if(ps2X.Button(PSB_R2)){
         Serial.println("R2 pressed");
-		setSpeed()
+		setSpeed(speed);
 	  }
     }
 
-  if (PSS_RX_VALUE == 255 && PSS_RY_VALUE == 255)    //无效值
+  if (PSS_RX_VALUE == 255 && PSS_LY_VALUE == 255)    //无效值
     return;
   #if 1
-  if (PSS_RX_VALUE == 128 && PSS_RY_VALUE == 255){  // debug
+  if (PSS_RX_VALUE == 128 && PSS_LY_VALUE == 255){  // debug
   	
          ps2X.read_gamepad();   
 		 PSS_RX_VALUE = ps2X.Analog(PSS_RX);
-         PSS_RY_VALUE = ps2X.Analog(PSS_RY);
-		 if(PSS_RX_VALUE == 128 && PSS_RY_VALUE == 255){
+         PSS_LY_VALUE = ps2X.Analog(PSS_LY);
+		 if(PSS_RX_VALUE == 128 && PSS_LY_VALUE == 255){
 		 }
 		 else return;   
 	     Serial.println("Error!");
@@ -68,9 +68,9 @@ void ps2Handle() {
 	  
   #endif
 
-// 摇杆在原点的中值为PSS_RX_VALUE = 128 ,PSS_RY_VALUE = 128
+// 摇杆在原点的中值为PSS_RX_VALUE = 128 ,PSS_LY_VALUE = 128
 
-// PSS_RX_VALUE 的范围为 0 - 255    PSS_RY_VALUE 的范围为 0 - 255
+// PSS_RX_VALUE 的范围为 0 - 255    PSS_LY_VALUE 的范围为 0 - 255
 
 
   if (PSS_RX_VALUE < 120) {   // x轴负方向left
@@ -93,21 +93,21 @@ void ps2Handle() {
   }
    else{
          //  x方向摇杆无动作     qian
-		if (PSS_RY_VALUE < 120)        //  Y 方向与x方向同理
+		if (PSS_LY_VALUE < 120)        //  Y 方向与x方向同理
 		  {
 			Serial.print("y= ");
-			Serial.println(PSS_RY_VALUE);
-			analogWrite(M0, ((128 - PSS_RY_VALUE) *2 -10 )/speed);   // 给电机驱动板的pwm信号
+			Serial.println(PSS_LY_VALUE);
+			analogWrite(M0, ((128 - PSS_LY_VALUE) *2 -10 )/speed);   // 给电机驱动板的pwm信号
 			digitalWrite(DIR0, 0);   // 给电机驱动板的pwm信号
-			analogWrite(M1,  (2*PSS_RY_VALUE+10)/speed);   // 给电机驱动板的pwm信号
+			analogWrite(M1,  ((128 - PSS_LY_VALUE) *2 -10 )/speed);   // 给电机驱动板的pwm信号
 			digitalWrite(DIR1, 1);   // 给电机驱动板的pwm信号
 		  }
-		else if (PSS_RY_VALUE > 138) {     // hou
+		else if (PSS_LY_VALUE > 138) {     // hou
 			Serial.print("y= ");
-			Serial.println(PSS_RY_VALUE);
-			analogWrite(M0, (510-PSS_RY_VALUE*2+10)/speed);   // 给电机驱动板的pwm信号
+			Serial.println(PSS_LY_VALUE);
+			analogWrite(M0, (510-PSS_LY_VALUE*2+10)/speed);   // 给电机驱动板的pwm信号
 			digitalWrite(DIR0, 1);   // 给电机驱动板的pwm信号
-			analogWrite(M1, (2*PSS_RY_VALUE-256 -10)/speed);   // 给电机驱动板的pwm信号
+			analogWrite(M1, (510-PSS_LY_VALUE*2+10)/speed);   // 给电机驱动板的pwm信号
 			digitalWrite(DIR1, 0);   // 给电机驱动板的pwm信号
 		}
 		else {
@@ -118,8 +118,8 @@ void ps2Handle() {
 		     }
    	}
   	Timer = millis() + 50;       //每50ms执行一次
-
  }
+ 
 void TaskRun(void)
 {
   ps2Handle();
