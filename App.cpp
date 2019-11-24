@@ -15,34 +15,31 @@ void InitPS2()
 void ps2Handle() {
   static uint32_t Timer;
   unsigned char PSS_RX_VALUE;
-  unsigned char PSS_RY_VALUE;
+  unsigned char PSS_LY_VALUE;
   if (Timer > millis())
     return;
   ps2X.read_gamepad();                  //读取遥控器按下的键值        
   
   PSS_RX_VALUE = ps2X.Analog(PSS_RX);  //  摇杆x方向的数值
-  PSS_RY_VALUE = ps2X.Analog(PSS_RY);  // 摇杆Y方向的数值
+  PSS_LY_VALUE = ps2X.Analog(PSS_LY);  // 摇杆Y方向的数值
 
-  if (PSS_RX_VALUE == 255 && PSS_RY_VALUE == 255)    //无效值
+  if (PSS_RX_VALUE == 255 && PSS_LY_VALUE == 255)    //无效值
     return;
-  #if 1
-  if (PSS_RX_VALUE == 128 && PSS_RY_VALUE == 255){  // debug
+ 
+  if (PSS_RX_VALUE == 128 && PSS_LY_VALUE == 128){  // debug
   	
-         ps2X.read_gamepad();   
-		 PSS_RX_VALUE = ps2X.Analog(PSS_RX);
-         PSS_RY_VALUE = ps2X.Analog(PSS_RY);
-		 if(PSS_RX_VALUE == 128 && PSS_RY_VALUE == 255){
-		 }
-		 else return;   
-	     Serial.println("Error!");
+	analogWrite(M0,0);   // 给电机驱动板的pwm信号
+	digitalWrite(DIR0,0);   // 给电机驱动板的pwm信号
+	analogWrite(M1, 0);   // 给电机驱动板的pwm信号
+	digitalWrite(DIR1,0);   // 给电机驱动板的pwm信号
   }
-	  
-  #endif
+	
 
-// 摇杆在原点的中值为PSS_RX_VALUE = 128 ,PSS_RY_VALUE = 128
+// 摇杆在原点的中值为PSS_RX_VALUE = 128 ,PSS_LY_VALUE = 128
 
-// PSS_RX_VALUE 的范围为 0 - 255    PSS_RY_VALUE 的范围为 0 - 255
-
+// PSS_RX_VALUE 的范围为 0 - 255    PSS_LY_VALUE 的范围为 0 - 255
+//analogWrite(ledpin,value) value介于0-255之间，代表速度。
+//digitalWrite(pin,value) value 0代表反转；1代表正转;
 
   if (PSS_RX_VALUE < 120) {   // x轴负方向left
 		Serial.print("x= "); 
@@ -64,21 +61,21 @@ void ps2Handle() {
   }
    else{
          //  x方向摇杆无动作     qian
-		if (PSS_RY_VALUE < 120)        //  Y 方向与x方向同理
+		if (PSS_LY_VALUE < 120)        //  Y 方向与x方向同理
 		  {
 			Serial.print("y= ");
-			Serial.println(PSS_RY_VALUE);
-			analogWrite(M0, (128 - PSS_RY_VALUE) *2 -10 );   // 给电机驱动板的pwm信号
+			Serial.println(PSS_LY_VALUE);
+			analogWrite(M0, (128 - PSS_LY_VALUE) *2 -10 );   // 给电机驱动板的pwm信号
 			digitalWrite(DIR0, 0);   // 给电机驱动板的pwm信号
-			analogWrite(M1,  2*PSS_RY_VALUE+10);   // 给电机驱动板的pwm信号
+			analogWrite(M1,  2*PSS_LY_VALUE+10);   // 给电机驱动板的pwm信号
 			digitalWrite(DIR1, 1);   // 给电机驱动板的pwm信号
 		  }
-		else if (PSS_RY_VALUE > 138) {     // hou
+		else if (PSS_LY_VALUE > 138) {     // hou
 			Serial.print("y= ");
-			Serial.println(PSS_RY_VALUE);
-			analogWrite(M0, 510-PSS_RY_VALUE*2+10 );   // 给电机驱动板的pwm信号
+			Serial.println(PSS_LY_VALUE);
+			analogWrite(M0, 510-PSS_LY_VALUE*2+10 );   // 给电机驱动板的pwm信号
 			digitalWrite(DIR0, 1);   // 给电机驱动板的pwm信号
-			analogWrite(M1, 2*PSS_RY_VALUE-256 -10);   // 给电机驱动板的pwm信号
+			analogWrite(M1, 2*PSS_LY_VALUE-256 -10);   // 给电机驱动板的pwm信号
 			digitalWrite(DIR1, 0);   // 给电机驱动板的pwm信号
 		}
 		else {
